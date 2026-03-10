@@ -1,15 +1,16 @@
 {
   "name": "ua-parser-es",
-  "version": "0.0.0",
-  "author": "Matteo Collina <hello@matteocollina.com>",
-  "description": "Detect Browser, Engine, OS, CPU, and Device type/model from User-Agent data. Supports browser & node.js environment",
   "type": "module",
-  "main": "./dist/index.mjs",
-  "module": "./dist/index.mjs",
-  "types": "./dist/index.d.mts",
-  "files": [
-    "dist"
-  ],
+  "version": "0.0.0",
+  "description": "Detect Browser, Engine, OS, CPU, and Device type/model from User-Agent data. Supports browser & node.js environment",
+  "author": "Matteo Collina <hello@matteocollina.com>",
+  "license": "MIT",
+  "homepage": "https://github.com/antfu-collective/ua-parser-es",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/antfu-collective/ua-parser-es.git"
+  },
+  "bugs": "https://github.com/antfu-collective/ua-parser-es/issues",
   "keywords": [
     "user-agent",
     "parser",
@@ -27,39 +28,37 @@
     "browser-detection",
     "architecture-detection"
   ],
+  "exports": {
+    ".": "./dist/index.mjs",
+    "./package.json": "./package.json"
+  },
+  "main": "./dist/index.mjs",
+  "module": "./dist/index.mjs",
+  "types": "./dist/index.d.mts",
+  "files": [
+    "dist"
+  ],
+  "engines": {
+    "node": ">=20.19.0"
+  },
   "scripts": {
     "build": "tsdown",
     "prepack": "npm run build",
     "test": "vitest run --typecheck",
-    "test:run": "vitest run",
-    "test:typecheck": "vitest typecheck",
-    "test:watch": "vitest",
-    "test-ci": "vitest run --typecheck"
+    "typecheck": "vitest typecheck && tsc --noEmit",
+    "lint": "eslint ."
   },
-  "homepage": "https://github.com/antfu-collective/ua-parser-es",
-  "repository": {
-    "type": "git",
-    "url": "git+https://github.com/antfu-collective/ua-parser-es.git"
-  },
-  "license": "MIT",
-  "engines": {
-    "node": ">=20.19.0"
-  },
-  "bugs": "https://github.com/antfu-collective/ua-parser-es/issues",
-  "dependencies": {},
   "devDependencies": {
+    "@antfu/eslint-config": "^7.7.0",
     "@babel/parser": "^7.28.4",
     "@babel/traverse": "^7.28.4",
     "@types/babel__traverse": "^7.28.0",
     "@types/node": "^24.5.2",
     "@types/safe-regex": "^1.1.6",
+    "eslint": "^10.0.3",
     "safe-regex": "^2.1.1",
     "tsdown": "^0.16.6",
     "typescript": "^5.9.2",
     "vitest": "^3.2.4"
-  },
-  "exports": {
-    ".": "./dist/index.mjs",
-    "./package.json": "./package.json"
   }
 }

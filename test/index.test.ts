@@ -1,3 +1,4 @@
+import type { IBrowser, ICPU, IDevice, IEngine, IOS, IResult } from '../src/index'
 import { readFileSync } from 'node:fs'
 import { parse } from '@babel/parser'
 import traverse from '@babel/traverse'
@@ -5,27 +6,26 @@ import safe from 'safe-regex'
 import { describe, expect, it } from 'vitest'
 import {
   BROWSER,
-  parseUA,
   parseBrowser,
   parseCPU,
   parseDevice,
   parseEngine,
   parseOS,
+  parseUA,
 } from '../src/index'
-import type { IBrowser, ICPU, IDevice, IEngine, IResult, IOS } from '../src/index'
 import browsers from './fixtures/browser-test.json'
 import cpus from './fixtures/cpu-test.json'
-import devices from './fixtures/device-test.json'  
+import devices from './fixtures/device-test.json'
 import engines from './fixtures/engine-test.json'
 import os from './fixtures/os-test.json'
 
-type FixtureEntry = {
+interface FixtureEntry {
   desc: string
   ua?: string
   expect: Record<string, string>
 }
 
-type MethodFixture = {
+interface MethodFixture {
   title: string
   label: keyof IResult
   parse: (ua?: string) => IBrowser | ICPU | IDevice | IEngine | IOS
@@ -125,7 +125,7 @@ describe('default result shape', () => {
 describe('regex extension', () => {
   it('extends browser regex map', () => {
     const uaString = 'Mozilla/5.0 MyOwnBrowser/1.3'
-    const myOwnBrowser = [[/(myownbrowser)\/((\d+)?[\w\.]+)/i], [BROWSER.NAME, BROWSER.VERSION, BROWSER.MAJOR]]
+    const myOwnBrowser = [[/(myownbrowser)\/((\d+)?[\w.]+)/i], [BROWSER.NAME, BROWSER.VERSION, BROWSER.MAJOR]]
 
     const browserFromUA = parseBrowser(uaString, { browser: myOwnBrowser })
     expect(browserFromUA.name).toBe('MyOwnBrowser')
@@ -141,7 +141,7 @@ describe('regex extension', () => {
   })
 })
 
-describe('User-agent length', () => {
+describe('user-agent length', () => {
   it('greater than 500 chars should be trimmed down', () => {
     const uaString = `Mozilla/5.0 ${'x'.repeat(600)}`
     expect(parseUA(uaString).ua.length).toBe(500)

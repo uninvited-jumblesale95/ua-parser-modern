@@ -61,7 +61,7 @@ const result = parseUA('Mozilla/5.0 MyBrowser/1.3', {
 Returns:
 
 ```ts
-type IResult = {
+interface IResult {
   ua: string
   browser: { name?: string, version?: string, major?: string }
   cpu: { architecture?: string }
