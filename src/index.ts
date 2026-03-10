@@ -19,10 +19,6 @@ export const version = pkg.version
 
 const EMPTY = ''
 const UNKNOWN = '?'
-const FUNC_TYPE = 'function'
-const UNDEF_TYPE = 'undefined'
-const OBJ_TYPE = 'object'
-const STR_TYPE = 'string'
 const MAJOR = 'major'
 const MODEL = 'model'
 const NAME = 'name'
@@ -65,111 +61,128 @@ const MAC_OS = 'Mac OS'
 // Helper
 //////////
 
-function extend(regexes, extensions) {
-  const mergedRegexes = {}
-  for (const i in regexes) {
-    if (extensions[i] && extensions[i].length % 2 === 0) {
-      mergedRegexes[i] = [...extensions[i], ...regexes[i]]
+type RegexMap = Record<string, unknown[]>
+type MapperFunction = (match: string | undefined, data?: unknown, context?: Record<string, unknown>) => unknown
+type MapperProperty = string | unknown[]
+type MapperArray = unknown[]
+type StringMap = Record<string, string | string[]>
+
+function extend<T extends RegexMap>(regexes: T, extensions: Partial<Record<keyof T, unknown[]>> = {}): T {
+  const mergedRegexes = {} as T
+  for (const key of Object.keys(regexes) as Array<keyof T>) {
+    const extension = extensions[key]
+    if (extension && extension.length % 2 === 0) {
+      mergedRegexes[key] = [...extension, ...regexes[key]] as T[typeof key]
     }
     else {
-      mergedRegexes[i] = regexes[i]
+      mergedRegexes[key] = regexes[key]
     }
   }
   return mergedRegexes
 }
-function enumerize(arr) {
-  const enums = {}
+function enumerize(arr: readonly string[]): Record<string, string> {
+  const enums: Record<string, string> = {}
   for (let i = 0; i < arr.length; i++) {
     enums[arr[i].toUpperCase()] = arr[i]
   }
   return enums
 }
-function has(str1, str2) {
-  return typeof str1 === STR_TYPE ? lowerize(str2).includes(lowerize(str1)) : false
-}
-var lowerize = function (str) {
+function lowerize(str: string): string {
   return str.toLowerCase()
 }
-function majorize(version) {
-  return typeof (version) === STR_TYPE ? version.replace(/[^\d.]/g, EMPTY).split('.')[0] : undefined
+function has(str1: unknown, str2: string): boolean {
+  return typeof str1 === 'string' ? lowerize(str2).includes(lowerize(str1)) : false
 }
-function trim(str, len) {
-  if (typeof (str) === STR_TYPE) {
-    str = str.replace(/^\s+/, EMPTY)
-    return typeof (len) === UNDEF_TYPE ? str : str.substring(0, UA_MAX_LENGTH)
-  }
+function majorize(version: string | undefined): string | undefined {
+  return typeof version === 'string' ? version.replace(/[^\d.]/g, EMPTY).split('.')[0] : undefined
+}
+function trim(str: string, len?: number): string {
+  const result = str.replace(/^\s+/, EMPTY)
+  return typeof len === 'undefined' ? result : result.substring(0, len)
 }
 
 ///////////////
 // Map helper
 //////////////
 
-function rgxMapper(ua, arrays) {
-  let i = 0; let j; let k; let p; let q; let matches; let match
+function rgxMapper(ua: string, arrays: MapperArray): Record<string, unknown> {
+  const result: Record<string, unknown> = {}
+  let i = 0
+  let matches: RegExpExecArray | null | undefined
 
   // loop through all regexes maps
   while (i < arrays.length && !matches) {
-    const regex = arrays[i] // even sequence (0,2,4,..)
-    const props = arrays[i + 1] // odd sequence (1,3,5,..)
-    j = k = 0
+    const regex = arrays[i] as RegExp[] // even sequence (0,2,4,..)
+    const props = arrays[i + 1] as MapperProperty[] // odd sequence (1,3,5,..)
+    let j = 0
+    let k = 0
 
     // try matching uastring with regexes
     while (j < regex.length && !matches) {
-      if (!regex[j]) { break }
+      if (!regex[j]) {
+        break
+      }
       matches = regex[j++].exec(ua)
 
       if (matches) {
-        for (p = 0; p < props.length; p++) {
-          match = matches[++k]
-          q = props[p]
+        for (let p = 0; p < props.length; p++) {
+          const match = matches[++k]
+          const q = props[p]
           // check if given property is actually array
-          if (typeof q === OBJ_TYPE && q.length > 0) {
+          if (Array.isArray(q)) {
+            const key = q[0] as string
             if (q.length === 2) {
-              if (typeof q[1] == FUNC_TYPE) {
+              const value = q[1]
+              if (typeof value === 'function') {
                 // assign modified match
-                this[q[0]] = q[1].call(this, match)
+                result[key] = (value as MapperFunction)(match, undefined, result)
               }
               else {
                 // assign given value, ignore regex match
-                this[q[0]] = q[1]
+                result[key] = value
               }
             }
             else if (q.length === 3) {
+              const arg1 = q[1]
+              const arg2 = q[2]
               // check whether function or regex
-              if (typeof q[1] === FUNC_TYPE && !(q[1].exec && q[1].test)) {
+              if (typeof arg1 === 'function' && !('exec' in arg1) && !('test' in arg1)) {
                 // call function (usually string mapper)
-                this[q[0]] = match ? q[1].call(this, match, q[2]) : undefined
+                result[key] = match ? (arg1 as MapperFunction)(match, arg2, result) : undefined
               }
               else {
                 // sanitize match using given regex
-                this[q[0]] = match ? match.replace(q[1], q[2]) : undefined
+                result[key] = match ? match.replace(arg1 as RegExp | string, arg2 as string) : undefined
               }
             }
             else if (q.length === 4) {
-              this[q[0]] = match ? q[3].call(this, match.replace(q[1], q[2])) : undefined
+              result[key] = match ? (q[3] as MapperFunction)(match.replace(q[1] as RegExp | string, q[2] as string), undefined, result) : undefined
             }
           }
           else {
-            this[q] = match || undefined
+            result[q] = match || undefined
           }
         }
       }
     }
     i += 2
   }
+
+  return result
 }
 
-function strMapper(str, map) {
+function strMapper(str: string, map: StringMap): string | undefined {
   for (const i in map) {
+    const value = map[i]
     // check if current value is array
-    if (typeof map[i] === OBJ_TYPE && map[i].length > 0) {
-      for (let j = 0; j < map[i].length; j++) {
-        if (has(map[i][j], str)) {
+    if (Array.isArray(value) && value.length > 0) {
+      for (let j = 0; j < value.length; j++) {
+        if (has(value[j], str)) {
           return (i === UNKNOWN) ? undefined : i
         }
       }
     }
-    else if (has(map[i], str)) {
+    else if (has(value, str)) {
       return (i === UNKNOWN) ? undefined : i
     }
   }
@@ -895,21 +908,29 @@ interface ParserContext {
   regexMap: typeof regexes
 }
 
-export const BROWSER = Object.freeze(enumerize([NAME, VERSION, MAJOR])) as BROWSER
-export const CPU = Object.freeze(enumerize([ARCHITECTURE])) as CPU
-export const DEVICE = Object.freeze(enumerize([MODEL, VENDOR, TYPE, CONSOLE, MOBILE, SMARTTV, TABLET, WEARABLE, EMBEDDED])) as DEVICE
-export const ENGINE = Object.freeze(enumerize([NAME, VERSION])) as ENGINE
-export const OS = Object.freeze(enumerize([NAME, VERSION])) as OS
+const browserEnum = Object.freeze(enumerize([NAME, VERSION, MAJOR])) as unknown as BROWSER
+const cpuEnum = Object.freeze(enumerize([ARCHITECTURE])) as unknown as CPU
+const deviceEnum = Object.freeze(enumerize([MODEL, VENDOR, TYPE, CONSOLE, MOBILE, SMARTTV, TABLET, WEARABLE, EMBEDDED])) as unknown as DEVICE
+const engineEnum = Object.freeze(enumerize([NAME, VERSION])) as unknown as ENGINE
+const osEnum = Object.freeze(enumerize([NAME, VERSION])) as unknown as OS
+
+export {
+  browserEnum as BROWSER,
+  cpuEnum as CPU,
+  deviceEnum as DEVICE,
+  engineEnum as ENGINE,
+  osEnum as OS,
+}
 
 function resolveParserInput(uastringOrExtensions?: ParserInput, extensions?: ParserExtensions): { uastring: string | undefined, extensions: ParserExtensions | undefined } {
-  if (typeof uastringOrExtensions === OBJ_TYPE && uastringOrExtensions !== null)
+  if (typeof uastringOrExtensions === 'object' && uastringOrExtensions !== null)
     return { uastring: undefined, extensions: uastringOrExtensions as ParserExtensions }
 
   return { uastring: uastringOrExtensions as string | undefined, extensions }
 }
 
 function getRuntimeNavigator(): UANavigator | undefined {
-  if (typeof window === UNDEF_TYPE || !window.navigator)
+  if (typeof window === 'undefined' || !window.navigator)
     return undefined
 
   return window.navigator as UANavigator
@@ -919,12 +940,12 @@ function createParserContext(uastringOrExtensions?: ParserInput, extensions?: Pa
   const resolved = resolveParserInput(uastringOrExtensions, extensions)
   const navigator = getRuntimeNavigator()
   const ua = resolved.uastring || ((navigator && navigator.userAgent) ? navigator.userAgent : EMPTY)
-  const normalizedUA = (typeof ua === STR_TYPE && ua.length > UA_MAX_LENGTH) ? trim(ua, UA_MAX_LENGTH) : ua
+  const normalizedUA = (typeof ua === 'string' && ua.length > UA_MAX_LENGTH) ? trim(ua, UA_MAX_LENGTH) : ua
   const userAgentData = navigator?.userAgentData
 
   return {
     ua: normalizedUA,
-    isSelfNavigator: Boolean(navigator && navigator.userAgent == normalizedUA),
+    isSelfNavigator: Boolean(navigator && navigator.userAgent === normalizedUA),
     navigator,
     userAgentData,
     regexMap: resolved.extensions ? extend(regexes, resolved.extensions) : regexes,
@@ -938,11 +959,11 @@ function parseBrowserFromContext(context: ParserContext): IBrowser {
     major: undefined,
   }
 
-  rgxMapper.call(browser, context.ua, context.regexMap.browser)
+  Object.assign(browser, rgxMapper(context.ua, context.regexMap.browser))
   browser.major = majorize(browser.version)
 
   // Brave-specific detection
-  if (context.isSelfNavigator && context.navigator?.brave && typeof context.navigator.brave.isBrave == FUNC_TYPE)
+  if (context.isSelfNavigator && context.navigator?.brave && typeof context.navigator.brave.isBrave === 'function')
     browser.name = 'Brave'
 
   return browser
@@ -953,7 +974,7 @@ function parseCPUFromContext(context: ParserContext): ICPU {
     architecture: undefined,
   }
 
-  rgxMapper.call(cpu, context.ua, context.regexMap.cpu)
+  Object.assign(cpu, rgxMapper(context.ua, context.regexMap.cpu))
 
   return cpu
 }
@@ -965,7 +986,7 @@ function parseDeviceFromContext(context: ParserContext): IDevice {
     type: undefined,
   }
 
-  rgxMapper.call(device, context.ua, context.regexMap.device)
+  Object.assign(device, rgxMapper(context.ua, context.regexMap.device))
 
   if (context.isSelfNavigator && !device.type && context.userAgentData?.mobile)
     device.type = MOBILE
@@ -973,9 +994,9 @@ function parseDeviceFromContext(context: ParserContext): IDevice {
   // iPadOS-specific detection: identified as Mac, but has some iOS-only properties
   if (
     context.isSelfNavigator
-    && device.model == 'Macintosh'
+    && device.model === 'Macintosh'
     && context.navigator
-    && typeof context.navigator.standalone !== UNDEF_TYPE
+    && typeof context.navigator.standalone !== 'undefined'
     && context.navigator.maxTouchPoints
     && context.navigator.maxTouchPoints > 2
   ) {
@@ -992,7 +1013,7 @@ function parseEngineFromContext(context: ParserContext): IEngine {
     version: undefined,
   }
 
-  rgxMapper.call(engine, context.ua, context.regexMap.engine)
+  Object.assign(engine, rgxMapper(context.ua, context.regexMap.engine))
 
   return engine
 }
@@ -1003,9 +1024,9 @@ function parseOSFromContext(context: ParserContext): IOS {
     version: undefined,
   }
 
-  rgxMapper.call(os, context.ua, context.regexMap.os)
+  Object.assign(os, rgxMapper(context.ua, context.regexMap.os))
 
-  if (context.isSelfNavigator && !os.name && context.userAgentData?.platform && context.userAgentData.platform != 'Unknown') {
+  if (context.isSelfNavigator && !os.name && context.userAgentData?.platform && context.userAgentData.platform !== 'Unknown') {
     os.name = context.userAgentData.platform
       .replace(/chrome os/i, CHROMIUM_OS)
       .replace(/macos/i, MAC_OS) // backward compatibility

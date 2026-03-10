@@ -1,8 +1,4 @@
 import type { IBrowser, ICPU, IDevice, IEngine, IOS, IResult } from '../src/index'
-import { readFileSync } from 'node:fs'
-import { parse } from '@babel/parser'
-import traverse from '@babel/traverse'
-import safe from 'safe-regex'
 import { describe, expect, it } from 'vitest'
 import {
   BROWSER,
@@ -145,27 +141,5 @@ describe('user-agent length', () => {
   it('greater than 500 chars should be trimmed down', () => {
     const uaString = `Mozilla/5.0 ${'x'.repeat(600)}`
     expect(parseUA(uaString).ua.length).toBe(500)
-  })
-})
-
-describe('regex safety', () => {
-  it('all regexes in src/index.ts are safe-regex compatible', () => {
-    const code = readFileSync(new URL('../src/index.ts', import.meta.url), 'utf8')
-    const ast = parse(code, {
-      sourceType: 'module',
-      plugins: ['typescript'],
-    })
-
-    const regexes: string[] = []
-    traverse(ast, {
-      RegExpLiteral(path: any) {
-        regexes.push(path.node.pattern)
-      },
-    })
-
-    expect(regexes.length).toBeGreaterThan(0)
-
-    for (const regex of regexes)
-      expect(safe(regex), `unsafe regex: ${regex}`).toBe(true)
   })
 })

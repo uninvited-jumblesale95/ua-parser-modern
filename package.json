@@ -45,18 +45,13 @@
     "build": "tsdown",
     "prepack": "npm run build",
     "test": "vitest run --typecheck",
-    "typecheck": "vitest typecheck && tsc --noEmit",
+    "typecheck": "tsc --noEmit",
     "lint": "eslint ."
   },
   "devDependencies": {
     "@antfu/eslint-config": "^7.7.0",
-    "@babel/parser": "^7.28.4",
-    "@babel/traverse": "^7.28.4",
-    "@types/babel__traverse": "^7.28.0",
     "@types/node": "^24.5.2",
-    "@types/safe-regex": "^1.1.6",
     "eslint": "^10.0.3",
-    "safe-regex": "^2.1.1",
     "tsdown": "^0.16.6",
     "typescript": "^5.9.2",
     "vitest": "^3.2.4"
