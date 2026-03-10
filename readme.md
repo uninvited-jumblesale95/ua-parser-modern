@@ -1,4 +1,4 @@
-# ua-parser-es
+# ua-parser-modern
 
 JavaScript library to detect Browser, Engine, OS, CPU, and Device type/model from User-Agent data with relatively small footprint (~17KB minified, ~6KB gzipped) that can be used in node.js (server-side).
 
@@ -232,12 +232,12 @@ sparc[64]
 Note: Device information is not available in the NodeJS environment.
 
 ```sh
-$ npm install ua-parser-es
+$ npm install ua-parser-modern
 ```
 
 ```js
 var http = require('http');
-var parser = require('ua-parser-es');
+var parser = require('ua-parser-modern');
 
 http.createServer(function (req, res) {
     // get user-agent header
