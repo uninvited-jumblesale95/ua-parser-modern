@@ -13,11 +13,11 @@ import {
   parseOS,
 } from '../src/index'
 import type { IBrowser, ICPU, IDevice, IEngine, IResult, IOS } from '../src/index'
-import browsers from './browser-test.json'
-import cpus from './cpu-test.json'
-import devices from './device-test.json'
-import engines from './engine-test.json'
-import os from './os-test.json'
+import browsers from './fixtures/browser-test.json'
+import cpus from './fixtures/cpu-test.json'
+import devices from './fixtures/device-test.json'  
+import engines from './fixtures/engine-test.json'
+import os from './fixtures/os-test.json'
 
 type FixtureEntry = {
   desc: string
