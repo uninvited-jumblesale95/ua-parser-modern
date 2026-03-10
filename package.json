@@ -1,5 +1,5 @@
 {
-  "name": "my-ua-parser",
+  "name": "ua-parser-es",
   "version": "2.0.4",
   "author": "Matteo Collina <hello@matteocollina.com>",
   "description": "Detect Browser, Engine, OS, CPU, and Device type/model from User-Agent data. Supports browser & node.js environment",
@@ -22,7 +22,7 @@
     "browser-detection",
     "architecture-detection"
   ],
-  "homepage": "https://github.com/mcollina/my-ua-parser",
+  "homepage": "https://github.com/antfu-collective/ua-parser-es",
   "contributors": [
     "Faisal Salman <f@faisalman.com> (http://faisalman.com)",
     "Aamir Poonawalla <aamir@urx.com>",
@@ -168,12 +168,12 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/mcollina/my-ua-parser.git"
+    "url": "git+https://github.com/antfu-collective/ua-parser-es.git"
   },
   "license": "MIT",
   "engines": {
     "node": "*"
   },
-  "bugs": "https://github.com/mcollina/my-ua-parser/issues",
+  "bugs": "https://github.com/antfu-collective/ua-parser-es/issues",
   "dependencies": {}
 }

@@ -1,11 +1,11 @@
 /////////////////////////////////////////////////////////////////////////////////
-/* my-ua-parser
+/* ua-parser-es
    Copyright © 2024 Matteo Collina <hello@matteocollina.com>
    Copyright © 2012-2023 Faisal Salman <f@faisalman.com>
    MIT License *//*
    Detect Browser, Engine, OS, CPU, and Device type/model from User-Agent data.
    Supports browser & node.js environment. 
-   Source : https://github.com/mcollina/my-ua-parser */
+   Source : https://github.com/antfu-collective/ua-parser-es */
 /////////////////////////////////////////////////////////////////////////////////
 
 (function (window, undefined) {
