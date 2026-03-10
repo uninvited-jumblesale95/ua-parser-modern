@@ -1,20 +1,22 @@
-# ua-parser-es
+# ua-parser-modern
 
-JavaScript/TypeScript library to detect browser, engine, OS, CPU, and device information from User-Agent strings.
+Detect Browser, Engine, OS, CPU, and Device type/model from User-Agent data. Supports browser & node.js environment.
+
+Forked from [`my-ua-parser`](https://github.com/mcollina/my-ua-parser), rewritten in TypeScript with functional API in ESM.
 
 ## Install
 
 ```sh
-npm i ua-parser-es
+pnpm i ua-parser-modern
 ```
 
 ## Usage
 
 ```ts
-import { parseUA } from 'ua-parser-es'
+import { parseUA } from 'ua-parser-modern'
 
 const result = parseUA('Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36')
-console.log(result.browser)
+console.log(result.browser) // { name: 'Chrome', version: '113.0.0.0', major: '113' }
 ```
 
 ### Named parser functions
@@ -27,7 +29,7 @@ import {
   parseEngine,
   parseOS,
   parseUA,
-} from 'ua-parser-es'
+} from 'ua-parser-modern'
 
 const ua = 'Mozilla/5.0 (...)'
 
@@ -42,7 +44,7 @@ parseUA(ua)
 ### Extend regexes
 
 ```ts
-import { BROWSER, parseUA } from 'ua-parser-es'
+import { BROWSER, parseUA } from 'ua-parser-modern'
 
 const customBrowser = [
   [/(mybrowser)\/([\w.]+)/i],
@@ -100,18 +102,9 @@ Returns `{ name, version }`.
 - `OS`
 - `version`
 
-## Notes
-
-- The package is pure ESM.
-- `parseUA` is a named export.
-- Browser-specific enhancements (Brave/iPadOS/client hints) are applied when parsing the current runtime navigator UA.
-
 ## Credits
 
-This library is a fork of [ua-parser-js](http://npm.im/ua-parser-js) by Faisal Salman.
-
-Fork point:
-- https://github.com/faisalman/ua-parser-js/commit/693a83de2e4cf8384f43f6a5831e58663c572580
+Forked from [`my-ua-parser`](https://github.com/mcollina/my-ua-parser) by Matteo Collina, which was a fork of [ua-parser-js](http://npm.im/ua-parser-js) by Faisal Salman.
 
 ## License
 

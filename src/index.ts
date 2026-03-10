@@ -1,12 +1,12 @@
 /////////////////////////////////////////////////////////////////////////////////
-/* ua-parser-es
+/* ua-parser-modern
    Copyright © 2026 Anthony Fu <anthonyfu117@hotmail.com>
    Copyright © 2024 Matteo Collina <hello@matteocollina.com>
    Copyright © 2012-2023 Faisal Salman <f@faisalman.com>
    MIT License *//*
    Detect Browser, Engine, OS, CPU, and Device type/model from User-Agent data.
    Supports browser & node.js environment.
-   Source : https://github.com/antfu-collective/ua-parser-es */
+   Source : https://github.com/antfu-collective/ua-parser-modern */
 /////////////////////////////////////////////////////////////////////////////////
 
 import pkg from '../package.json'

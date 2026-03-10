@@ -1,16 +1,16 @@
 {
-  "name": "ua-parser-es",
+  "name": "ua-parser-modern",
   "type": "module",
   "version": "0.0.0",
   "description": "Detect Browser, Engine, OS, CPU, and Device type/model from User-Agent data. Supports browser & node.js environment",
   "author": "Matteo Collina <hello@matteocollina.com>",
   "license": "MIT",
-  "homepage": "https://github.com/antfu-collective/ua-parser-es",
+  "homepage": "https://github.com/antfu-collective/ua-parser-modern",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/antfu-collective/ua-parser-es.git"
+    "url": "git+https://github.com/antfu-collective/ua-parser-modern.git"
   },
-  "bugs": "https://github.com/antfu-collective/ua-parser-es/issues",
+  "bugs": "https://github.com/antfu-collective/ua-parser-modern/issues",
   "keywords": [
     "user-agent",
     "parser",
