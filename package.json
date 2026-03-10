@@ -1,9 +1,15 @@
 {
-  "name": "ua-parser-modern",
+  "name": "ua-parser-es",
   "version": "0.0.0",
-  "packageManager": "pnpm@10.32.0",
   "author": "Matteo Collina <hello@matteocollina.com>",
   "description": "Detect Browser, Engine, OS, CPU, and Device type/model from User-Agent data. Supports browser & node.js environment",
+  "type": "module",
+  "main": "./dist/index.mjs",
+  "module": "./dist/index.mjs",
+  "types": "./dist/index.d.mts",
+  "files": [
+    "dist"
+  ],
   "keywords": [
     "user-agent",
     "parser",
@@ -12,8 +18,6 @@
     "os",
     "device",
     "cpu",
-    "jquery-plugin",
-    "ecosystem:jquery",
     "ua-parser-js",
     "client-hints",
     "user-agent-detection",
@@ -23,33 +27,39 @@
     "browser-detection",
     "architecture-detection"
   ],
-  "homepage": "https://github.com/antfu-collective/ua-parser-modern",
-  "main": "ua-parser.js",
-  "files": [
-    "ua-parser.js",
-    "ua-parser.d.ts"
-  ],
   "scripts": {
-    "test": "jshint ua-parser.js && mocha -R nyan test/test.js && tsd",
-    "test-ci": "jshint ua-parser.js && mocha -R spec test/test.js && tsd"
+    "build": "tsdown",
+    "prepack": "npm run build",
+    "test": "vitest run --typecheck",
+    "test:run": "vitest run",
+    "test:typecheck": "vitest typecheck",
+    "test:watch": "vitest",
+    "test-ci": "vitest run --typecheck"
   },
-  "devDependencies": {
-    "@babel/parser": "7.15.8",
-    "@babel/traverse": "7.15.4",
-    "jshint": "~2.12.0",
-    "mocha": "~8.2.0",
-    "safe-regex": "^2.1.1",
-    "tsd": "^0.31.0",
-    "uglify-js": "~3.12.0"
-  },
+  "homepage": "https://github.com/antfu-collective/ua-parser-es",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/antfu-collective/ua-parser-modern.git"
+    "url": "git+https://github.com/antfu-collective/ua-parser-es.git"
   },
   "license": "MIT",
   "engines": {
-    "node": "*"
+    "node": ">=20.19.0"
   },
-  "bugs": "https://github.com/antfu-collective/ua-parser-modern/issues",
-  "dependencies": {}
+  "bugs": "https://github.com/antfu-collective/ua-parser-es/issues",
+  "dependencies": {},
+  "devDependencies": {
+    "@babel/parser": "^7.28.4",
+    "@babel/traverse": "^7.28.4",
+    "@types/babel__traverse": "^7.28.0",
+    "@types/node": "^24.5.2",
+    "@types/safe-regex": "^1.1.6",
+    "safe-regex": "^2.1.1",
+    "tsdown": "^0.16.6",
+    "typescript": "^5.9.2",
+    "vitest": "^3.2.4"
+  },
+  "exports": {
+    ".": "./dist/index.mjs",
+    "./package.json": "./package.json"
+  }
 }

@@ -1,5 +1,6 @@
 MIT License
 
+Copyright © 2026 Anthony Fu <anthonyfu117@hotmail.com>
 Copyright (c) 2024 Matteo Collina <<hello@matteocollina.com>>
 Copyright (c) 2012-2023 Faisal Salman <<f@faisalman.com>>
 
