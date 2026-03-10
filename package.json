@@ -1,6 +1,7 @@
 {
   "name": "ua-parser-modern",
   "version": "0.0.0",
+  "packageManager": "pnpm@10.32.0",
   "author": "Matteo Collina <hello@matteocollina.com>",
   "description": "Detect Browser, Engine, OS, CPU, and Device type/model from User-Agent data. Supports browser & node.js environment",
   "keywords": [
@@ -38,8 +39,8 @@
     "jshint": "~2.12.0",
     "mocha": "~8.2.0",
     "safe-regex": "^2.1.1",
-    "uglify-js": "~3.12.0",
-    "tsd": "^0.31.0"
+    "tsd": "^0.31.0",
+    "uglify-js": "~3.12.0"
   },
   "repository": {
     "type": "git",
