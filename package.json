@@ -43,7 +43,7 @@
   },
   "scripts": {
     "build": "tsdown",
-    "bench:my-ua-parser": "node bench/compare-my-ua-parser.mjs",
+    "bench:my-ua-parser": "vitest bench --run bench/compare-my-ua-parser.bench.ts",
     "prepack": "npm run build",
     "test": "vitest run --typecheck",
     "typecheck": "tsc --noEmit",
@@ -54,7 +54,6 @@
     "@types/node": "^24.5.2",
     "eslint": "^10.0.3",
     "my-ua-parser": "2.0.4",
-    "tinybench": "2.9.0",
     "tsdown": "^0.16.6",
     "typescript": "^5.9.2",
     "vitest": "^3.2.4"

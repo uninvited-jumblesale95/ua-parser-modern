@@ -1,4 +1,4 @@
-import type { IBrowser, ICPU, IDevice, IEngine, IOS, IResult } from '../src/index'
+import type { IBrowser, ICPU, IDevice, IEngine, IOS, IResult, ParserExtensions } from '../src/index'
 import { describe, expect, it } from 'vitest'
 import {
   BROWSER,
@@ -82,6 +82,31 @@ describe('parseUA', () => {
 
   it('does not throw with undefined ua argument', () => {
     expect(() => parseUA(undefined)).not.toThrow()
+  })
+
+  it('memoizes parsed sections on repeated getter access', () => {
+    const ua = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/135.0.0.0 Safari/537.36'
+    const result = parseUA(ua)
+    const first = result.browser
+    first.name = 'changed'
+
+    const second = result.browser
+    expect(second).toBe(first)
+    expect(second.name).toBe('changed')
+  })
+
+  it('creates parser context lazily', () => {
+    const extensions = {} as ParserExtensions
+    Object.defineProperty(extensions, 'browser', {
+      configurable: true,
+      enumerable: true,
+      get() {
+        throw new Error('context-created')
+      },
+    })
+
+    const result = parseUA(undefined, extensions)
+    expect(() => result.browser).toThrowError('context-created')
   })
 })
 

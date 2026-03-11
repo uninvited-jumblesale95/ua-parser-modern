@@ -4,6 +4,9 @@ export default defineConfig({
   test: {
     environment: 'node',
     include: ['test/**/*.test.ts'],
+    benchmark: {
+      include: ['bench/**/*.bench.ts'],
+    },
     typecheck: {
       enabled: true,
       checker: 'tsc',

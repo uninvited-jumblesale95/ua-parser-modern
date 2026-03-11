@@ -105,70 +105,71 @@ function trim(str: string, len?: number): string {
 // Map helper
 //////////////
 
-function rgxMapper(ua: string, arrays: MapperArray): Record<string, unknown> {
-  const result: Record<string, unknown> = {}
-  let i = 0
-  let matches: RegExpExecArray | null | undefined
-
+function rgxMapper<T extends object>(ua: string, arrays: MapperArray, augment: T): T
+function rgxMapper(ua: string, arrays: MapperArray): Record<string, unknown>
+function rgxMapper<T extends object>(ua: string, arrays: MapperArray, augment?: T): T | Record<string, unknown> {
+  const result = (augment ?? {}) as Record<string, unknown>
   // loop through all regexes maps
-  while (i < arrays.length && !matches) {
+  for (let i = 0; i < arrays.length; i += 2) {
     const regex = arrays[i] as RegExp[] // even sequence (0,2,4,..)
     const props = arrays[i + 1] as MapperProperty[] // odd sequence (1,3,5,..)
-    let j = 0
-    let k = 0
 
     // try matching uastring with regexes
-    while (j < regex.length && !matches) {
-      if (!regex[j]) {
+    for (let j = 0; j < regex.length; j++) {
+      const matcher = regex[j]
+      if (!matcher)
         break
-      }
-      matches = regex[j++].exec(ua)
 
-      if (matches) {
-        for (let p = 0; p < props.length; p++) {
-          const match = matches[++k]
-          const q = props[p]
-          // check if given property is actually array
-          if (Array.isArray(q)) {
-            const key = q[0] as string
-            if (q.length === 2) {
-              const value = q[1]
-              if (typeof value === 'function') {
-                // assign modified match
-                result[key] = (value as MapperFunction)(match, undefined, result)
-              }
-              else {
-                // assign given value, ignore regex match
-                result[key] = value
-              }
+      const matches = matcher.exec(ua)
+      if (!matches)
+        continue
+
+      for (let p = 0; p < props.length; p++) {
+        const match = matches[p + 1]
+        const q = props[p]
+        // check if given property is actually array
+        if (Array.isArray(q)) {
+          const key = q[0] as string
+          const length = q.length
+
+          if (length === 2) {
+            const value = q[1]
+            if (typeof value === 'function') {
+              // assign modified match
+              result[key] = (value as MapperFunction)(match, undefined, result)
             }
-            else if (q.length === 3) {
-              const arg1 = q[1]
-              const arg2 = q[2]
-              // check whether function or regex
-              if (typeof arg1 === 'function' && !('exec' in arg1) && !('test' in arg1)) {
-                // call function (usually string mapper)
-                result[key] = match ? (arg1 as MapperFunction)(match, arg2, result) : undefined
-              }
-              else {
-                // sanitize match using given regex
-                result[key] = match ? match.replace(arg1 as RegExp | string, arg2 as string) : undefined
-              }
-            }
-            else if (q.length === 4) {
-              result[key] = match ? (q[3] as MapperFunction)(match.replace(q[1] as RegExp | string, q[2] as string), undefined, result) : undefined
+            else {
+              // assign given value, ignore regex match
+              result[key] = value
             }
           }
-          else {
-            result[q] = match || undefined
+          else if (length === 3) {
+            const arg1 = q[1]
+            const arg2 = q[2]
+            // check whether function or regex
+            if (typeof arg1 === 'function' && !('exec' in arg1) && !('test' in arg1)) {
+              // call function (usually string mapper)
+              result[key] = match ? (arg1 as MapperFunction)(match, arg2, result) : undefined
+            }
+            else {
+              // sanitize match using given regex
+              result[key] = match ? match.replace(arg1 as RegExp | string, arg2 as string) : undefined
+            }
+          }
+          else if (length === 4) {
+            result[key] = match ? (q[3] as MapperFunction)(match.replace(q[1] as RegExp | string, q[2] as string), undefined, result) : undefined
           }
         }
+        else {
+          result[q] = match || undefined
+        }
       }
+
+      return result as T | Record<string, unknown>
     }
-    i += 2
   }
 
-  return result
+  return result as T | Record<string, unknown>
 }
 
 function strMapper(str: string, map: StringMap): string | undefined {
@@ -891,6 +892,10 @@ export type ParserExtensions = Partial<Record<ParserSection, unknown[]>>
 
 type ParserInput = string | ParserExtensions | undefined
 
+function isExtensionsInput(input: ParserInput): input is ParserExtensions {
+  return typeof input === 'object' && input !== null
+}
+
 type UANavigator = Navigator & {
   brave?: { isBrave?: () => unknown }
   standalone?: unknown
@@ -922,13 +927,6 @@ export {
   osEnum as OS,
 }
 
-function resolveParserInput(uastringOrExtensions?: ParserInput, extensions?: ParserExtensions): { uastring: string | undefined, extensions: ParserExtensions | undefined } {
-  if (typeof uastringOrExtensions === 'object' && uastringOrExtensions !== null)
-    return { uastring: undefined, extensions: uastringOrExtensions as ParserExtensions }
-
-  return { uastring: uastringOrExtensions as string | undefined, extensions }
-}
-
 function getRuntimeNavigator(): UANavigator | undefined {
   if (typeof window === 'undefined' || !window.navigator)
     return undefined
@@ -936,19 +934,50 @@ function getRuntimeNavigator(): UANavigator | undefined {
   return window.navigator as UANavigator
 }
 
-function createParserContext(uastringOrExtensions?: ParserInput, extensions?: ParserExtensions): ParserContext {
-  const resolved = resolveParserInput(uastringOrExtensions, extensions)
+function normalizeUA(ua: string): string {
+  return ua.length > UA_MAX_LENGTH ? trim(ua, UA_MAX_LENGTH) : ua
+}
+
+function createDefaultParserContext(uastring?: string): ParserContext {
+  if (typeof uastring === 'string') {
+    return {
+      ua: normalizeUA(uastring),
+      isSelfNavigator: false,
+      navigator: undefined,
+      userAgentData: undefined,
+      regexMap: regexes,
+    }
+  }
+
   const navigator = getRuntimeNavigator()
-  const ua = resolved.uastring || ((navigator && navigator.userAgent) ? navigator.userAgent : EMPTY)
-  const normalizedUA = (typeof ua === 'string' && ua.length > UA_MAX_LENGTH) ? trim(ua, UA_MAX_LENGTH) : ua
+  const ua = normalizeUA((navigator && navigator.userAgent) ? navigator.userAgent : EMPTY)
+
+  return {
+    ua,
+    isSelfNavigator: Boolean(navigator && navigator.userAgent === ua),
+    navigator,
+    userAgentData: navigator?.userAgentData,
+    regexMap: regexes,
+  }
+}
+
+function createParserContext(uastringOrExtensions?: ParserInput, extensions?: ParserExtensions): ParserContext {
+  // Fast path for the common case: no extensions.
+  if (!extensions && !isExtensionsInput(uastringOrExtensions))
+    return createDefaultParserContext(uastringOrExtensions)
+
+  const navigator = getRuntimeNavigator()
+  const uastring = isExtensionsInput(uastringOrExtensions) ? undefined : uastringOrExtensions
+  const resolvedExtensions = isExtensionsInput(uastringOrExtensions) ? uastringOrExtensions : extensions
+  const ua = normalizeUA(uastring || ((navigator && navigator.userAgent) ? navigator.userAgent : EMPTY))
   const userAgentData = navigator?.userAgentData
 
   return {
-    ua: normalizedUA,
-    isSelfNavigator: Boolean(navigator && navigator.userAgent === normalizedUA),
+    ua,
+    isSelfNavigator: Boolean(navigator && navigator.userAgent === ua),
     navigator,
     userAgentData,
-    regexMap: resolved.extensions ? extend(regexes, resolved.extensions) : regexes,
+    regexMap: resolvedExtensions ? extend(regexes, resolvedExtensions) : regexes,
   }
 }
 
@@ -959,7 +988,7 @@ function parseBrowserFromContext(context: ParserContext): IBrowser {
     major: undefined,
   }
 
-  Object.assign(browser, rgxMapper(context.ua, context.regexMap.browser))
+  rgxMapper(context.ua, context.regexMap.browser, browser)
   browser.major = majorize(browser.version)
 
   // Brave-specific detection
@@ -974,7 +1003,7 @@ function parseCPUFromContext(context: ParserContext): ICPU {
     architecture: undefined,
   }
 
-  Object.assign(cpu, rgxMapper(context.ua, context.regexMap.cpu))
+  rgxMapper(context.ua, context.regexMap.cpu, cpu)
 
   return cpu
 }
@@ -986,7 +1015,7 @@ function parseDeviceFromContext(context: ParserContext): IDevice {
     type: undefined,
   }
 
-  Object.assign(device, rgxMapper(context.ua, context.regexMap.device))
+  rgxMapper(context.ua, context.regexMap.device, device)
 
   if (context.isSelfNavigator && !device.type && context.userAgentData?.mobile)
     device.type = MOBILE
@@ -1013,7 +1042,7 @@ function parseEngineFromContext(context: ParserContext): IEngine {
     version: undefined,
   }
 
-  Object.assign(engine, rgxMapper(context.ua, context.regexMap.engine))
+  rgxMapper(context.ua, context.regexMap.engine, engine)
 
   return engine
 }
@@ -1024,7 +1053,7 @@ function parseOSFromContext(context: ParserContext): IOS {
     version: undefined,
   }
 
-  Object.assign(os, rgxMapper(context.ua, context.regexMap.os))
+  rgxMapper(context.ua, context.regexMap.os, os)
 
   if (context.isSelfNavigator && !os.name && context.userAgentData?.platform && context.userAgentData.platform !== 'Unknown') {
     os.name = context.userAgentData.platform
@@ -1056,14 +1085,37 @@ export function parseOS(uastringOrExtensions?: ParserInput, extensions?: ParserE
 }
 
 export function parseUA(uastringOrExtensions?: ParserInput, extensions?: ParserExtensions): IResult {
-  const context = createParserContext(uastringOrExtensions, extensions)
+  let context: ParserContext | undefined
+  let browserCache: IBrowser | undefined
+  let engineCache: IEngine | undefined
+  let osCache: IOS | undefined
+  let deviceCache: IDevice | undefined
+  let cpuCache: ICPU | undefined
+  const getContext = () => (context ||= createParserContext(uastringOrExtensions, extensions))
 
   return {
-    ua: context.ua,
-    get browser() { return parseBrowserFromContext(context) },
-    get engine() { return parseEngineFromContext(context) },
-    get os() { return parseOSFromContext(context) },
-    get device() { return parseDeviceFromContext(context) },
-    get cpu() { return parseCPUFromContext(context) },
+    get ua() {
+      return getContext().ua
+    },
+    get browser() {
+      browserCache ||= parseBrowserFromContext(getContext())
+      return browserCache
+    },
+    get engine() {
+      engineCache ||= parseEngineFromContext(getContext())
+      return engineCache
+    },
+    get os() {
+      osCache ||= parseOSFromContext(getContext())
+      return osCache
+    },
+    get device() {
+      deviceCache ||= parseDeviceFromContext(getContext())
+      return deviceCache
+    },
+    get cpu() {
+      cpuCache ||= parseCPUFromContext(getContext())
+      return cpuCache
+    },
   }
 }
