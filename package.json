@@ -1,7 +1,7 @@
 {
   "name": "ua-parser-modern",
   "type": "module",
-  "version": "0.0.0",
+  "version": "0.1.0",
   "description": "Detect Browser, Engine, OS, CPU, and Device type/model from User-Agent data. Supports browser & node.js environment",
   "author": "Matteo Collina <hello@matteocollina.com>",
   "license": "MIT",
