@@ -2,8 +2,9 @@
   "name": "ua-parser-modern",
   "type": "module",
   "version": "0.1.0",
+  "packageManager": "pnpm@10.32.1",
   "description": "Detect Browser, Engine, OS, CPU, and Device type/model from User-Agent data. Supports browser & node.js environment",
-  "author": "Matteo Collina <hello@matteocollina.com>",
+  "author": "Anthony Fu <anthonyfu117@hotmail.com>",
   "license": "MIT",
   "homepage": "https://github.com/antfu-collective/ua-parser-modern",
   "repository": {
@@ -32,8 +33,6 @@
     ".": "./dist/index.mjs",
     "./package.json": "./package.json"
   },
-  "main": "./dist/index.mjs",
-  "module": "./dist/index.mjs",
   "types": "./dist/index.d.mts",
   "files": [
     "dist"
@@ -53,20 +52,20 @@
   },
   "devDependencies": {
     "@antfu/eslint-config": "^7.7.0",
-    "@types/node": "^24.5.2",
+    "@types/node": "^25.4.0",
     "bumpp": "^10.4.1",
     "eslint": "^10.0.3",
-    "lint-staged": "^16.3.3",
     "my-ua-parser": "2.0.4",
+    "nano-staged": "^0.9.0",
     "simple-git-hooks": "^2.13.1",
-    "tsdown": "^0.16.6",
-    "typescript": "^5.9.2",
-    "vitest": "^3.2.4"
+    "tsdown": "^0.21.1",
+    "typescript": "^5.9.3",
+    "vitest": "^4.0.18"
   },
   "simple-git-hooks": {
-    "pre-commit": "pnpm i --frozen-lockfile --ignore-scripts --offline && npx lint-staged"
+    "pre-commit": "pnpm i --frozen-lockfile --ignore-scripts --offline && npx nano-staged"
   },
-  "lint-staged": {
+  "nano-staged": {
     "*": "eslint --fix"
   }
 }
