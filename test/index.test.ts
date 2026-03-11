@@ -2,6 +2,7 @@ import type { IBrowser, ICPU, IDevice, IEngine, IOS, IResult, ParserExtensions }
 import { describe, expect, it } from 'vitest'
 import {
   BROWSER,
+  OS,
   parseBrowser,
   parseCPU,
   parseDevice,
@@ -66,6 +67,33 @@ const methods: MethodFixture[] = [
     properties: ['name', 'version'],
   },
 ]
+
+interface NavigatorMock {
+  userAgent?: string
+  brave?: { isBrave?: () => unknown }
+  standalone?: unknown
+  maxTouchPoints?: number
+  userAgentData?: {
+    mobile?: boolean
+    platform?: string
+  }
+}
+
+function withMockedNavigator<T>(navigator: NavigatorMock, run: () => T): T {
+  const globalWithWindow = globalThis as { window?: unknown }
+  const previousWindow = globalWithWindow.window
+  globalWithWindow.window = { navigator }
+
+  try {
+    return run()
+  }
+  finally {
+    if (typeof previousWindow === 'undefined')
+      delete globalWithWindow.window
+    else
+      globalWithWindow.window = previousWindow
+  }
+}
 
 describe('parseUA', () => {
   it('returns composed parser output', () => {
@@ -166,5 +194,120 @@ describe('user-agent length', () => {
   it('greater than 500 chars should be trimmed down', () => {
     const uaString = `Mozilla/5.0 ${'x'.repeat(600)}`
     expect(parseUA(uaString).ua.length).toBe(500)
+  })
+})
+
+describe('runtime navigator fallbacks', () => {
+  it('uses runtime navigator user-agent when ua is omitted', () => {
+    withMockedNavigator(
+      { userAgent: 'CustomUA/1.0' },
+      () => {
+        expect(parseUA(undefined).ua).toBe('CustomUA/1.0')
+      },
+    )
+  })
+
+  it('falls back to empty ua when runtime navigator user-agent is missing', () => {
+    withMockedNavigator(
+      {},
+      () => {
+        expect(parseUA(undefined).ua).toBe('')
+      },
+    )
+  })
+
+  it('marks the browser as Brave when runtime brave API is available', () => {
+    withMockedNavigator(
+      {
+        userAgent: 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/135.0.0.0 Safari/537.36',
+        brave: { isBrave: () => true },
+      },
+      () => {
+        expect(parseBrowser(undefined).name).toBe('Brave')
+      },
+    )
+  })
+
+  it('uses userAgentData.mobile as a device fallback in self navigator context', () => {
+    withMockedNavigator(
+      {
+        userAgent: 'CustomDeviceAgent/1.0',
+        userAgentData: { mobile: true },
+      },
+      () => {
+        expect(parseDevice(undefined).type).toBe('mobile')
+      },
+    )
+  })
+
+  it('detects iPadOS from Macintosh UA with standalone and touch points', () => {
+    withMockedNavigator(
+      {
+        userAgent: 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/18.3 Safari/605.1.15',
+        standalone: false,
+        maxTouchPoints: 5,
+      },
+      () => {
+        const device = parseDevice(undefined)
+        expect(device.model).toBe('iPad')
+        expect(device.type).toBe('tablet')
+      },
+    )
+  })
+
+  it('uses userAgentData.platform when os cannot be detected from ua', () => {
+    withMockedNavigator(
+      {
+        userAgent: 'UnknownOSAgent/1.0',
+        userAgentData: { platform: 'macOS' },
+      },
+      () => {
+        expect(parseOS(undefined).name).toBe('Mac OS')
+      },
+    )
+  })
+
+  it('uses runtime navigator ua in extension-only parser mode', () => {
+    withMockedNavigator(
+      { userAgent: 'MyBrowser/8.9' },
+      () => {
+        const customBrowser = [[/(mybrowser)\/([\w.]+)/i], [BROWSER.NAME, BROWSER.VERSION, BROWSER.MAJOR]]
+        const result = parseBrowser({ browser: customBrowser })
+        expect(result.name).toBe('MyBrowser')
+        expect(result.version).toBe('8.9')
+      },
+    )
+  })
+})
+
+describe('regex mapper edge cases', () => {
+  it('breaks out safely when an extension contains an empty regex slot', () => {
+    const invalidMatcher = [[undefined as unknown as RegExp], [BROWSER.NAME]] as unknown as unknown[]
+    expect(() => parseBrowser('Custom/1.0', { browser: invalidMatcher })).not.toThrow()
+  })
+
+  it('supports mapper arrays of length 4 and ignores unsupported lengths', () => {
+    const customBrowser = [[/custom-browser/i], [
+      [BROWSER.NAME, 'Custom Browser'],
+      [BROWSER.VERSION, /x/g, '', (value: string) => value],
+      [BROWSER.MAJOR, /x/g, '', (value: string) => value, 'ignored'],
+    ]] as unknown as unknown[]
+    const result = parseBrowser('custom-browser', { browser: customBrowser })
+    expect(result.name).toBe('Custom Browser')
+    expect(result.version).toBeUndefined()
+  })
+
+  it('maps unmatched old Safari build tokens to an undefined version', () => {
+    const uaString = 'Mozilla/5.0 AppleWebKit/530.0 (KHTML, like Gecko) Safari/999.1'
+    const result = parseBrowser(uaString)
+    expect(result.name).toBe('Safari')
+    expect(result.version).toBeUndefined()
+  })
+
+  it('handles map entries that return undefined from mapper functions', () => {
+    const customOS = [[/custom-os\/([\w.]+)/i], [[OS.VERSION, () => undefined], [OS.NAME, 'CustomOS']]] as unknown as unknown[]
+    const result = parseOS('custom-os/1.2.3', { os: customOS })
+    expect(result.name).toBe('CustomOS')
+    expect(result.version).toBeUndefined()
   })
 })
