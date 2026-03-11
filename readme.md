@@ -15,7 +15,7 @@ pnpm i ua-parser-modern
 ```ts
 import { parseUA } from 'ua-parser-modern'
 
-const result = parseUA('Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36')
+const result = parseUA(navigator.userAgent)
 console.log(result.browser) // { name: 'Chrome', version: '113.0.0.0', major: '113' }
 ```
 
